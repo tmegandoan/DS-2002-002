@@ -9,8 +9,7 @@ FROM products;
 -- ------------------------------------------------------------------
 -- 1). Product Name and Unit/Quantity
 -- ------------------------------------------------------------------
-SELECT product_name
-	, quantity_per_unit
+SELECT product_name, quantity_per_unit
 FROM products;
 
 -- ------------------------------------------------------------------
