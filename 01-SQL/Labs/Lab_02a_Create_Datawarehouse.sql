@@ -1,7 +1,7 @@
-# DROP database `northwind_dw`;
-CREATE DATABASE `Northwind_DW3` /*!40100 DEFAULT CHARACTER SET latin1 */ /*!80016 DEFAULT ENCRYPTION='N' */;
+#DROP database `northwind_dw`;
+CREATE DATABASE `Northwind_DW` /*!40100 DEFAULT CHARACTER SET latin1 */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
-USE Northwind_DW3;
+USE Northwind_DW;
 
 # DROP TABLE `dim_customers`;
 CREATE TABLE `dim_customers` (
@@ -108,5 +108,118 @@ CREATE TABLE `dim_suppliers` (
 --       orders_status tables to create a new Fact Table in Northwind_DW.
 -- To keep things simple, don't include purchase order or inventory info
 -- ----------------------------------------------------------------------
-# DROP TABLE `fact_orders`;
-CREATE TABLE `fact_orders`;
+
+#DROP TABLE `fact_orders`; 
+
+CREATE TABLE fact_orders AS
+SELECT o.id, o.employee_id,
+    o.customer_id,
+    od.product_id,
+	o.shipper_id,
+    o.ship_name,
+    o.ship_address,
+    o.ship_city,
+    o.ship_state_province,
+    o.ship_zip_postal_code,
+    o.ship_country_region,
+    od.quantity,
+    o.order_date,
+    o.shipped_date,
+    od.unit_price,
+    od.discount,
+    o.shipping_fee,
+    o.taxes,
+    o.payment_type,
+    o.paid_date,
+    o.tax_rate,
+    os.status_name as order_status,
+    ods.status_name AS order_details_status
+FROM northwind.orders AS o
+INNER JOIN northwind.orders_status AS os
+ON o.status_id = os.id
+INNER JOIN northwind.order_details AS od
+ON o.id = od.order_id
+INNER JOIN northwind.order_details_status AS ods
+ON od.status_id = ods.id;
+
+
+CREATE TABLE `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `employee_id` int DEFAULT NULL,
+  `customer_id` int DEFAULT NULL,
+  `order_date` datetime DEFAULT NULL,
+  `shipped_date` datetime DEFAULT NULL,
+  `shipper_id` int DEFAULT NULL,
+  `ship_name` varchar(50) DEFAULT NULL,
+  `ship_address` longtext,
+  `ship_city` varchar(50) DEFAULT NULL,
+  `ship_state_province` varchar(50) DEFAULT NULL,
+  `ship_zip_postal_code` varchar(50) DEFAULT NULL,
+  `ship_country_region` varchar(50) DEFAULT NULL,
+  `shipping_fee` decimal(19,4) DEFAULT '0.0000',
+  `taxes` decimal(19,4) DEFAULT '0.0000',
+  `payment_type` varchar(50) DEFAULT NULL,
+  `paid_date` datetime DEFAULT NULL,
+  `notes` longtext,
+  `tax_rate` double DEFAULT '0',
+  `tax_status_id` tinyint DEFAULT NULL,
+  `status_id` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `customer_id_2` (`customer_id`),
+  KEY `employee_id` (`employee_id`),
+  KEY `employee_id_2` (`employee_id`),
+  KEY `id` (`id`),
+  KEY `id_2` (`id`),
+  KEY `shipper_id` (`shipper_id`),
+  KEY `shipper_id_2` (`shipper_id`),
+  KEY `id_3` (`id`),
+  KEY `tax_status` (`tax_status_id`),
+  KEY `ship_zip_postal_code` (`ship_zip_postal_code`),
+  KEY `fk_orders_orders_status1` (`status_id`),
+  CONSTRAINT `fk_orders_customers` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
+  CONSTRAINT `fk_orders_employees1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`),
+  CONSTRAINT `fk_orders_orders_status1` FOREIGN KEY (`status_id`) REFERENCES `orders_status` (`id`),
+  CONSTRAINT `fk_orders_orders_tax_status1` FOREIGN KEY (`tax_status_id`) REFERENCES `orders_tax_status` (`id`),
+  CONSTRAINT `fk_orders_shippers1` FOREIGN KEY (`shipper_id`) REFERENCES `shippers` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=82 DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE `order_details` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `product_id` int DEFAULT NULL,
+  `quantity` decimal(18,4) NOT NULL DEFAULT '0.0000',
+  `unit_price` decimal(19,4) DEFAULT '0.0000',
+  `discount` double NOT NULL DEFAULT '0',
+  `status_id` int DEFAULT NULL,
+  `date_allocated` datetime DEFAULT NULL,
+  `purchase_order_id` int DEFAULT NULL,
+  `inventory_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`),
+  KEY `inventory_id` (`inventory_id`),
+  KEY `id_2` (`id`),
+  KEY `id_3` (`id`),
+  KEY `id_4` (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `product_id_2` (`product_id`),
+  KEY `purchase_order_id` (`purchase_order_id`),
+  KEY `id_5` (`id`),
+  KEY `fk_order_details_orders1_idx` (`order_id`),
+  KEY `fk_order_details_order_details_status1_idx` (`status_id`),
+  CONSTRAINT `fk_order_details_order_details_status1` FOREIGN KEY (`status_id`) REFERENCES `order_details_status` (`id`),
+  CONSTRAINT `fk_order_details_orders1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  CONSTRAINT `fk_order_details_products1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE `order_details_status` (
+  `id` int NOT NULL,
+  `status_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE `orders_status` (
+  `id` tinyint NOT NULL,
+  `status_name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
